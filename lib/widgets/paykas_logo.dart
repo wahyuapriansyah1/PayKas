@@ -21,30 +21,29 @@ class PayKasLogo extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Wallet Emblem Icon
+        // Wallet Emblem Icon or Asset Logo
         Container(
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withOpacity(0.12) : AppColors.primary,
+            color: isDark ? Colors.white.withValues(alpha: 0.12) : AppColors.primary,
             borderRadius: BorderRadius.circular(size * 0.28),
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.black.withOpacity(0.25)
-                    : AppColors.primary.withOpacity(0.2),
+                    ? Colors.black.withValues(alpha: 0.25)
+                    : AppColors.primary.withValues(alpha: 0.2),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
             ],
             border: isDark
-                ? Border.all(color: Colors.white.withOpacity(0.2), width: 1.5)
+                ? Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5)
                 : null,
           ),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Wallet layers
               Icon(
                 Icons.account_balance_wallet_rounded,
                 size: size * 0.52,
@@ -64,7 +63,7 @@ class PayKasLogo extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.18),
+                        color: Colors.black.withValues(alpha: 0.18),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -105,7 +104,7 @@ class PayKasLogo extends StatelessWidget {
               fontWeight: FontWeight.w500,
               height: 1.4,
               color: isDark
-                  ? Colors.white.withOpacity(0.85)
+                  ? Colors.white.withValues(alpha: 0.85)
                   : AppColors.textSecondary,
             ),
           ),

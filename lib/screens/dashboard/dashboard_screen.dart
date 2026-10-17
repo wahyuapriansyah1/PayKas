@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/stat_card.dart';
-import '../../widgets/transaction_item.dart';
 import '../../state/kas_provider.dart';
+import '../../models/transaction_model.dart';
+import '../../widgets/paykas_header.dart';
 import 'detail_pemasukan_screen.dart';
 import 'detail_pengeluaran_screen.dart';
-import '../members/anggota_kelas_screen.dart';
 import '../payment/admin_pemasukan_screen.dart';
-import '../payment/admin_pengeluaran_screen.dart';
-import '../settings/detail_profile_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final KasProvider provider;
@@ -27,151 +24,389 @@ class DashboardScreen extends StatelessWidget {
       listenable: provider,
       builder: (context, _) {
         final user = provider.currentUser;
+        final totalKasFormatted = KasProvider.formatRupiah(provider.totalKas);
+        final masukFormatted = '+${KasProvider.formatRupiah(provider.masukBulanIni)}';
+        final keluarFormatted = '-${KasProvider.formatRupiah(provider.keluarBulanIni)}';
+        final paidCount = provider.paidMemberCount;
+        final totalMembers = provider.members.length;
+        final percentFormatted = '${provider.paidPercentage.toStringAsFixed(1)}%';
 
         return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            titleSpacing: 20,
-            centerTitle: false,
-            title: Text(
-              'PayKas',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: AppColors.primary,
-                letterSpacing: -0.5,
-              ),
-            ),
-            actions: [
-              // Notification Bell
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.notifications_none_rounded,
-                      color: AppColors.textPrimary,
-                      size: 24,
-                    ),
-                    onPressed: () {
-                      _showNotifications(context);
-                    },
-                  ),
-                  Positioned(
-                    top: 13,
-                    right: 14,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.expenseRed,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              // User Avatar Pill "W"
-              Padding(
-                padding: const EdgeInsets.only(right: 18, left: 2),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailProfileScreen(provider: provider),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    width: 34,
-                    height: 34,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        user.name.isNotEmpty ? user.name[0].toUpperCase() : 'W',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          body: RefreshIndicator(
-            color: AppColors.primary,
-            onRefresh: () async {
-              await Future.delayed(const Duration(milliseconds: 400));
+          backgroundColor: AppColors.background,
+          appBar: PayKasHeader(
+            title: 'Beranda',
+            provider: provider,
+            onProfileTap: () {
+              onTabChangeRequested?.call(3);
             },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // CARD 1: Total Kas
-                  TotalKasCard(totalAmount: provider.totalKas),
-                  const SizedBox(height: 14),
+          ),
+          body: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Greeting & Welcome Banner
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Halo, ${user.name}! 👋',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          user.className,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.onSurface,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainer,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Aktif',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
 
-                  // ROW: Pemasukan & Pengeluaran Cards
-                  Row(
+                // 2. Main Balance Card (Hero Card)
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.28),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(
                     children: [
-                      Expanded(
-                        child: SummaryMiniCard(
-                          title: 'Pemasukan',
-                          amount: provider.totalPemasukan,
-                          isIncome: true,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    DetailPemasukanScreen(provider: provider),
-                              ),
-                            );
-                          },
+                      // Decorative background radial circles
+                      Positioned(
+                        right: -30,
+                        bottom: -30,
+                        child: Container(
+                          width: 140,
+                          height: 140,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.secondary.withValues(alpha: 0.25),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: SummaryMiniCard(
-                          title: 'Pengeluaran',
-                          amount: provider.totalPengeluaran,
-                          isIncome: false,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    DetailPengeluaranScreen(provider: provider),
+                      Positioned(
+                        left: -30,
+                        top: -30,
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.08),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(22),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'TOTAL SALDO KAS KELAS',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 1.1,
+                                        color: Colors.white.withValues(alpha: 0.8),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      totalKasFormatted,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.5,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.2),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.account_balance_wallet_rounded,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Divider & Month Stats
+                            Container(
+                              padding: const EdgeInsets.only(top: 14),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                    color: Colors.white.withValues(alpha: 0.18),
+                                    width: 1,
+                                  ),
+                                ),
                               ),
-                            );
-                          },
+                              child: Row(
+                                children: [
+                                  // Masuk
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                DetailPemasukanScreen(provider: provider),
+                                          ),
+                                        );
+                                      },
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 32,
+                                            height: 32,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: const Icon(
+                                              Icons.arrow_downward_rounded,
+                                              color: AppColors.inversePrimary,
+                                              size: 18,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Masuk (Bulan Ini)',
+                                                  style: GoogleFonts.plusJakartaSans(
+                                                    fontSize: 11,
+                                                    color: Colors.white.withValues(alpha: 0.75),
+                                                  ),
+                                                ),
+                                                Text(
+                                                  masukFormatted,
+                                                  style: GoogleFonts.plusJakartaSans(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  // Keluar
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                DetailPengeluaranScreen(provider: provider),
+                                          ),
+                                        );
+                                      },
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 32,
+                                            height: 32,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: const Icon(
+                                              Icons.arrow_upward_rounded,
+                                              color: AppColors.errorContainer,
+                                              size: 18,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Keluar',
+                                                  style: GoogleFonts.plusJakartaSans(
+                                                    fontSize: 11,
+                                                    color: Colors.white.withValues(alpha: 0.75),
+                                                  ),
+                                                ),
+                                                Text(
+                                                  keluarFormatted,
+                                                  style: GoogleFonts.plusJakartaSans(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 22),
+                ),
+                const SizedBox(height: 18),
 
-                  // 4 Quick Action Circular Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildQuickAction(
-                        icon: Icons.payments_outlined,
-                        label: 'Pemasukan',
-                        iconColor: AppColors.incomeGreen,
-                        bgColor: AppColors.incomeBg,
+                // 3. Quick Actions Bento (2 Columns)
+                Row(
+                  children: [
+                    // Bayar KAS Button
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          onTabChangeRequested?.call(2); // Jump to Bayar tab
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryContainer,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  Icons.payments_rounded,
+                                  color: AppColors.onPrimaryContainer,
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Bayar KAS',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.onSurface,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Setor iuran wajib',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: AppColors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Setor Dana Button
+                    Expanded(
+                      child: GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
@@ -181,368 +416,312 @@ class DashboardScreen extends StatelessWidget {
                             ),
                           );
                         },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: AppColors.secondaryContainer,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  Icons.add_card_rounded,
+                                  color: AppColors.onSecondaryContainer,
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Setor Dana',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.onSurface,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Kasus & sponsor',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: AppColors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      _buildQuickAction(
-                        icon: Icons.receipt_long_outlined,
-                        label: 'Pengeluaran',
-                        iconColor: AppColors.expenseRed,
-                        bgColor: AppColors.expenseBg,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  AdminPengeluaranScreen(provider: provider),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildQuickAction(
-                        icon: Icons.groups_outlined,
-                        label: 'Anggota Kelas',
-                        iconColor: const Color(0xFF0284C7),
-                        bgColor: const Color(0xFFE0F2FE),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  AnggotaKelasScreen(provider: provider),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildQuickAction(
-                        icon: Icons.history_rounded,
-                        label: 'Riwayat',
-                        iconColor: const Color(0xFF7C3AED),
-                        bgColor: const Color(0xFFEDE9FE),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  DetailPemasukanScreen(provider: provider),
-                            ),
-                          );
-                        },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // 4. Stat Highlight Mini Banner
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 26),
-
-                  // SECTION: Aktivitas Terbaru (Recent Activities)
-                  Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Aktivitas Terbaru',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  DetailPemasukanScreen(provider: provider),
+                      Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: const BoxDecoration(
+                              color: AppColors.tertiaryContainer,
+                              shape: BoxShape.circle,
                             ),
-                          );
-                        },
+                            child: const Icon(
+                              Icons.verified_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Status Iuran Kelas',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$paidCount dari $totalMembers siswa sudah lunas',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11.5,
+                                  color: AppColors.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondaryFixed,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Text(
-                          'Lihat Semua',
+                          percentFormatted,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
                             color: AppColors.primary,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-
-                  // Recent Transactions List
-                  ...provider.recentTransactions.map(
-                    (tx) => Column(
-                      children: [
-                        TransactionListItem(
-                          transaction: tx,
-                          onTap: () {
-                            _showTransactionDetailModal(context, tx);
-                          },
-                        ),
-                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // PayKas Features Banner (from bottom of screenshot)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildFeaturePoint(
-                          icon: Icons.check_circle_outline_rounded,
-                          title: 'Mudah Digunakan',
-                          subtitle: 'Tampilan sederhana dan intuitif',
-                        ),
-                        const SizedBox(height: 12),
-                        _buildFeaturePoint(
-                          icon: Icons.shield_outlined,
-                          title: 'Aman & Terpercaya',
-                          subtitle: 'Data tersimpan dengan aman',
-                        ),
-                        const SizedBox(height: 12),
-                        _buildFeaturePoint(
-                          icon: Icons.dashboard_customize_outlined,
-                          title: 'Fitur Lengkap',
-                          subtitle: 'Untuk admin dan user kelas',
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildQuickAction({
-    required IconData icon,
-    required String label,
-    required Color iconColor,
-    required Color bgColor,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: bgColor,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: iconColor, size: 24),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeaturePoint({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.primarySurface,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 18, color: AppColors.primary),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            Text(
-              subtitle,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  void _showNotifications(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Pemberitahuan',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 20),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: AppColors.incomeBg,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.check, color: AppColors.incomeGreen, size: 18),
                 ),
-                title: Text(
-                  'Iuran Andi terverifikasi',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  '12 Mei 2025 • Rp 100.000 via Transfer Bank',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11),
-                ),
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: AppColors.expenseBg,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.receipt_outlined, color: AppColors.expenseRed, size: 18),
-                ),
-                title: Text(
-                  'Pengeluaran ATK dicatat',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  '11 Mei 2025 • Rp 75.000 untuk kertas dan spidol',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+                const SizedBox(height: 22),
 
-  void _showTransactionDetailModal(BuildContext context, dynamic tx) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Detail Transaksi',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Kategori', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textSecondary)),
-                  Text(tx.title, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Nominal', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textSecondary)),
-                  Text(KasProvider.formatRupiah(tx.amount), style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Tanggal', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textSecondary)),
-                  Text(KasProvider.formatDate(tx.date), style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Pencatat / Pengirim', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textSecondary)),
-                  Text(tx.person, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Metode', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textSecondary)),
-                  Text(tx.method, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600)),
-                ],
-              ),
-              if (tx.note != null) ...[
-                const SizedBox(height: 8),
+                // 5. Recent Transactions
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Catatan', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textSecondary)),
-                    Text(tx.note!, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w500)),
+                    Text(
+                      'Transaksi Terakhir',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        onTabChangeRequested?.call(1); // Jump to Anggota & Histori tab
+                      },
+                      child: Text(
+                        'Lihat Semua',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
+                const SizedBox(height: 12),
+
+                // Transactions List Cards
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: provider.recentTransactions.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final tx = provider.recentTransactions[index];
+                    final isIncome = tx.type == TransactionType.income;
+                    final amountFormatted =
+                        '${isIncome ? '+' : '-'}${KasProvider.formatRupiah(tx.amount)}';
+
+                    return GestureDetector(
+                      onTap: () {
+                        if (isIncome) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DetailPemasukanScreen(provider: provider),
+                            ),
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DetailPengeluaranScreen(provider: provider),
+                            ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.02),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            // Icon bubble
+                            Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: isIncome
+                                    ? AppColors.primaryContainer.withValues(alpha: 0.2)
+                                    : AppColors.errorContainer,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                isIncome
+                                    ? Icons.arrow_downward_rounded
+                                    : Icons.arrow_upward_rounded,
+                                color: isIncome ? AppColors.primary : AppColors.error,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+
+                            // Title & Subtitle
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    tx.title,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.onSurface,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    '${KasProvider.formatDate(tx.date)} • ${tx.note ?? tx.category}',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.5,
+                                      color: AppColors.onSurfaceVariant,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Amount & Status Badge
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  amountFormatted,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: isIncome
+                                        ? AppColors.primary
+                                        : AppColors.error,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isIncome
+                                        ? AppColors.secondaryFixed
+                                        : AppColors.surfaceContainerHighest,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    isIncome ? 'Berhasil' : 'Pengeluaran',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: isIncome
+                                          ? AppColors.onSecondaryFixed
+                                          : AppColors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
               ],
-            ],
+            ),
           ),
         );
       },

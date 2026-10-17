@@ -149,7 +149,7 @@ class _UserPembayaranScreenState extends State<UserPembayaranScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.25),
+                      color: AppColors.primary.withValues(alpha: 0.25),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),
@@ -160,7 +160,7 @@ class _UserPembayaranScreenState extends State<UserPembayaranScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
+                        color: Colors.white.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
@@ -178,7 +178,7 @@ class _UserPembayaranScreenState extends State<UserPembayaranScreen> {
                             'Iuran Kelas',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 13,
-                              color: Colors.white.withOpacity(0.85),
+                              color: Colors.white.withValues(alpha: 0.85),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -196,7 +196,7 @@ class _UserPembayaranScreenState extends State<UserPembayaranScreen> {
                             widget.provider.currentUser.className,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
-                              color: Colors.white.withOpacity(0.75),
+                              color: Colors.white.withValues(alpha: 0.75),
                             ),
                           ),
                         ],
@@ -249,7 +249,7 @@ class _UserPembayaranScreenState extends State<UserPembayaranScreen> {
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? AppColors.primary.withOpacity(0.12)
+                                    ? AppColors.primary.withValues(alpha: 0.12)
                                     : const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(10),
                               ),

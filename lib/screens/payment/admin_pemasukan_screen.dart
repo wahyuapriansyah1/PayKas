@@ -53,7 +53,10 @@ class _AdminPemasukanScreenState extends State<AdminPemasukanScreen> {
   }
 
   void _handleSave() async {
-    final rawNominal = _nominalController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final rawNominal = _nominalController.text
+        .split('')
+        .where((c) => '0123456789'.contains(c))
+        .join();
     final amount = int.tryParse(rawNominal);
 
     if (amount == null || amount <= 0) {

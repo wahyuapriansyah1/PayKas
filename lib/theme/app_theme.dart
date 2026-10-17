@@ -2,37 +2,72 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  // Primary Palette - Rich Forest Emerald Green
-  static const Color primary = Color(0xFF0D5D45);
-  static const Color primaryDark = Color(0xFF084030);
+  // Stitch Material 3 Palette - Rich Emerald & Clean Canvas
+  static const Color primary = Color(0xFF006C49);
+  static const Color onPrimary = Color(0xFFFFFFFF);
+  static const Color primaryContainer = Color(0xFF10B981);
+  static const Color onPrimaryContainer = Color(0xFF00422B);
+  static const Color primaryDark = Color(0xFF004E35);
   static const Color primaryLight = Color(0xFF147A5B);
-  static const Color primarySurface = Color(0xFFEAF5F0);
+  static const Color primarySurface = Color(0xFFE8F7F0);
   static const Color primaryChip = Color(0xFFD4EFE4);
+
+  static const Color secondary = Color(0xFF006C4A);
+  static const Color onSecondary = Color(0xFFFFFFFF);
+  static const Color secondaryContainer = Color(0xFF82F5C1);
+  static const Color onSecondaryContainer = Color(0xFF00714E);
+  static const Color secondaryFixed = Color(0xFF85F8C4);
+  static const Color onSecondaryFixed = Color(0xFF002114);
+
+  static const Color tertiary = Color(0xFF006C4B);
+  static const Color tertiaryContainer = Color(0xFF00B982);
+  static const Color onTertiaryContainer = Color(0xFF00422C);
 
   // Status & Transaction Colors
   static const Color incomeGreen = Color(0xFF10B981);
   static const Color incomeBg = Color(0xFFE8F7F0);
-  static const Color expenseRed = Color(0xFFEF4444);
-  static const Color expenseBg = Color(0xFFFEECEB);
+  static const Color expenseRed = Color(0xFFBA1A1A);
+  static const Color expenseBg = Color(0xFFFFDAD6);
 
-  // Neutrals & Backgrounds
-  static const Color background = Color(0xFFF7F9FB);
-  static const Color surface = Colors.white;
-  static const Color textPrimary = Color(0xFF1A202C);
-  static const Color textSecondary = Color(0xFF64748B);
-  static const Color textMuted = Color(0xFF94A3B8);
+  // Surfaces & Backgrounds
+  static const Color background = Color(0xFFFAF8FF);
+  static const Color surface = Color(0xFFFAF8FF);
+  static const Color surfaceContainerLowest = Color(0xFFFFFFFF);
+  static const Color surfaceContainerLow = Color(0xFFF2F3FF);
+  static const Color surfaceContainer = Color(0xFFEAEDFF);
+  static const Color surfaceContainerHigh = Color(0xFFE2E7FF);
+  static const Color surfaceContainerHighest = Color(0xFFDAE2FD);
+
+  // Neutrals & Text
+  static const Color onSurface = Color(0xFF131B2E);
+  static const Color onSurfaceVariant = Color(0xFF3C4A42);
+  static const Color textPrimary = Color(0xFF131B2E);
+  static const Color textSecondary = Color(0xFF3C4A42);
+  static const Color textMuted = Color(0xFF6C7A71);
+  static const Color outline = Color(0xFF6C7A71);
+  static const Color outlineVariant = Color(0xFFBBCABF);
   static const Color border = Color(0xFFE2E8F0);
-  static const Color inputFill = Color(0xFFF8FAFC);
+  static const Color inputFill = Color(0xFFF2F3FF);
+
+  // Dark & Inverted Accents
+  static const Color inverseSurface = Color(0xFF283044);
+  static const Color inverseOnSurface = Color(0xFFEEF0FF);
+  static const Color inversePrimary = Color(0xFF4EDEA3);
+
+  // Error
+  static const Color error = Color(0xFFBA1A1A);
+  static const Color errorContainer = Color(0xFFFFDAD6);
+  static const Color onErrorContainer = Color(0xFF93000A);
 
   // Gradient definitions
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF0F684E), Color(0xFF0B4C38)],
+    colors: [Color(0xFF006C49), Color(0xFF004E35)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient splashGradient = LinearGradient(
-    colors: [Color(0xFF0B4F39), Color(0xFF073828)],
+    colors: [Color(0xFF006C49), Color(0xFF003825)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );

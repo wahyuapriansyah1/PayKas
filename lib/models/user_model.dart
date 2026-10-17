@@ -5,6 +5,7 @@ class UserModel {
   final String phone;
   final String className;
   final String role;
+  final String? avatarAsset;
 
   const UserModel({
     required this.name,
@@ -13,6 +14,7 @@ class UserModel {
     required this.phone,
     required this.className,
     this.role = 'Bendahara Kelas',
+    this.avatarAsset,
   });
 
   UserModel copyWith({
@@ -22,6 +24,7 @@ class UserModel {
     String? phone,
     String? className,
     String? role,
+    String? avatarAsset,
   }) {
     return UserModel(
       name: name ?? this.name,
@@ -30,6 +33,7 @@ class UserModel {
       phone: phone ?? this.phone,
       className: className ?? this.className,
       role: role ?? this.role,
+      avatarAsset: avatarAsset ?? this.avatarAsset,
     );
   }
 }

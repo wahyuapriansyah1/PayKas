@@ -86,7 +86,7 @@ class _DetailPemasukanScreenState extends State<DetailPemasukanScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.incomeBg,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.incomeGreen.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.incomeGreen.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

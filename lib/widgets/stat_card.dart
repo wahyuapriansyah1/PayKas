@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
+import '../state/kas_provider.dart';
 
-class TotalKasCard extends StatelessWidget {
+class StatTotalCard extends StatelessWidget {
   final int totalAmount;
-  final VoidCallback? onTap;
 
-  const TotalKasCard({
-    super.key,
-    required this.totalAmount,
-    this.onTap,
-  });
+  const StatTotalCard({super.key, required this.totalAmount});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +18,7 @@ class TotalKasCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -37,7 +33,7 @@ class TotalKasCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.12),
+                color: Colors.white.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
@@ -53,14 +49,14 @@ class TotalKasCard extends StatelessWidget {
               Text(
                 'Total Kas',
                 style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white.withOpacity(0.85),
+                  color: Colors.white.withValues(alpha: 0.85),
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Rp ${totalAmount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}',
+                KasProvider.formatRupiah(totalAmount),
                 style: GoogleFonts.plusJakartaSans(
                   color: Colors.white,
                   fontSize: 26,
@@ -76,13 +72,13 @@ class TotalKasCard extends StatelessWidget {
   }
 }
 
-class SummaryMiniCard extends StatelessWidget {
+class StatDetailCard extends StatelessWidget {
   final String title;
   final int amount;
   final bool isIncome;
   final VoidCallback? onTap;
 
-  const SummaryMiniCard({
+  const StatDetailCard({
     super.key,
     required this.title,
     required this.amount,
@@ -94,7 +90,7 @@ class SummaryMiniCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final iconColor = isIncome ? AppColors.incomeGreen : AppColors.expenseRed;
     final iconBg = isIncome ? AppColors.incomeBg : AppColors.expenseBg;
-    final arrowIcon = isIncome ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded;
+    final arrowIcon = isIncome ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
 
     return Material(
       color: Colors.white,
@@ -134,7 +130,7 @@ class SummaryMiniCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Rp ${amount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}',
+                      KasProvider.formatRupiah(amount),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(

@@ -86,7 +86,7 @@ class _DetailPengeluaranScreenState extends State<DetailPengeluaranScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.expenseBg,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.expenseRed.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.expenseRed.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
